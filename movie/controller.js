@@ -1,0 +1,50 @@
+import { getAll, remove, save, get } from "./model.js";
+import { render } from "./view.js";
+import {  render as form } from "./form.js";
+import {dirname} from 'path';
+import { fileURLToPath } from 'url';
+
+//  async - функция всегда возвращает промис
+export async function listAction(request, response) {
+    // await заставит интерпретатор JavaScript ждать до тех пор, пока промис справа от await не выполнится.
+    // После чего оно вернёт его результат, и выполнение кода продолжится.
+    let movies = await getAll();
+    response.render('list', {
+      layout: false,
+      movie:movies[0]
+  });
+    // гарантирует загрузку вместо используемого модуля по умолчанию
+   // response.render(`${dirname(fileURLToPath(import.meta.url))}/views/list`, {
+   //   movies,
+    //});
+   // let body = render(data);
+   // response.send(body);
+}
+
+export async function removeAction(request, response) {
+    const id = parseInt(request.params.id, 10);
+    await remove(id);
+    response.redirect(request.baseUrl);
+}
+
+export async function formAction(request, response) {
+
+    let movie = {id:'', title:'', year:''};
+    if (request.params.id) {
+      movie = await get(parseInt(request.params.id, 10));
+    }
+    let  body = form (movie);
+
+   response.send(body);
+}
+
+export async function saveAction(request, response) {
+    const movie = {
+        id: request.body.id,
+        title: request.body.title,
+        year: request.body.year
+    };
+    await save(movie);
+    // Задает новый URL-адрес и условия прекращения выполнения текущей страницы
+    response.redirect(request.baseUrl);
+}
