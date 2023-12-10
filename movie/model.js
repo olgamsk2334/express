@@ -1,46 +1,52 @@
-let data = [
-    {id:1, title: 'Iron man', year:'2008'},
-    {id:2, title: 'Thor', year:'2011'},
-    {id:3, title: 'Captain', year:'2012'},
-    {id:4, title: 'BuiThor', year:'2018'},
-    {id:5, title: 'Cap', year:'2012'},
-];
+import mysql from 'mysql2/promise';
+const connection = await mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'root',
+    password: 'topSecret',
+    database:'movie-db',
+})
+await connection.connect();
 
-function getNextId(){
-    return Math.max(...data.map((movie)=> movie.id))+1;
+
+
+export async function insert(movie){
+
+  const query = 'INSERT INTO Movies (title,year) VALUES (?,?)';
+  const[result] = await connection.query(query,[movie.title,movie.year]);
+  return { ...movie, id: result.insertId};
 }
 
-function insert(movie){
-    movie.id = getNextId();
-}
-
-function update(movie){
-    movie.id = parseInt(movie.id);
-    const index = data.findIndex((item) => item.id === movie.id)
-    data[index] = movie;
+async function update(movie){
+    const query = 'UPDATE  Movies SET title = ?, year = ? WHERE id= ?';
+    await connection.query(query,[movie.title, movie.year, movie.id]);
+    return movie;
 }
 
 
-export function getAll() {
-    // используют, когда хотят построить асинхронную цепочку,
-    //и начальный результат уже есть.
-    return Promise.resolve(data);
+export async function getAll() {
+    
+   const query = 'SELECT * FROM Movies';
+   const [data] = await connection.query(query);
+   return data;
 }
 
-export function remove(id) {
-    data = data.filter(movie => movie.id !== id);
-    return Promise.resolve();
+export async function remove(id) {
+    const query = 'DELETE FROM Movies WHERE id=?';
+    await connection.query(query,[id]);
+    return;
 }
 
-export function get(id) {
-       return Promise.resolve(data.find((movie) => movie.id === id));
+export async function get(id) {
+       const query = 'SELECT* from Movies WHERE id= ?';
+       const [data] = await connection.query(query, [id]);
+       return data.pop();
 }
 
 export function save(movie) {
-    if (movie.id === ''){
-      insert(movie)  ;                                                                                                                                           
+    if (!movie.id){
+        return  insert(movie)  ;                                                                                                                                           
     } else {
-        update(movie);
+        return update(movie);
     }
-    return Promise.resolve(data.push(movie));
+  
 }

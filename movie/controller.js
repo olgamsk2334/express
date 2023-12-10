@@ -6,19 +6,10 @@ import { fileURLToPath } from 'url';
 
 //  async - функция всегда возвращает промис
 export async function listAction(request, response) {
-    // await заставит интерпретатор JavaScript ждать до тех пор, пока промис справа от await не выполнится.
-    // После чего оно вернёт его результат, и выполнение кода продолжится.
+  
     let movies = await getAll();
-    response.render('list', {
-      layout: false,
-      movie:movies[0]
-  });
-    // гарантирует загрузку вместо используемого модуля по умолчанию
-   // response.render(`${dirname(fileURLToPath(import.meta.url))}/views/list`, {
-   //   movies,
-    //});
-   // let body = render(data);
-   // response.send(body);
+    response.render(`${dirname(fileURLToPath(import.meta.url))}/views/list`, {movies,});
+    
 }
 
 export async function removeAction(request, response) {
@@ -26,6 +17,7 @@ export async function removeAction(request, response) {
     await remove(id);
     response.redirect(request.baseUrl);
 }
+
 
 export async function formAction(request, response) {
 
@@ -37,6 +29,7 @@ export async function formAction(request, response) {
 
    response.send(body);
 }
+
 
 export async function saveAction(request, response) {
     const movie = {
